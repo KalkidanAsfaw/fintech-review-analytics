@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 APPS = {
     "CBE Mobile Banking": "com.combanketh.mobilebanking",
     "Bank of Abyssinia": "com.boa.boaMobileBanking",
-    "Dashen Bank": "com.dashen.mobilebankingapp",
+    "Dashen Bank": "com.dashen.dashensuperapp",
 }
 
 
