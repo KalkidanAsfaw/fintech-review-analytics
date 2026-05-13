@@ -9,3 +9,4 @@ torch
 pytest
 jupyter
 notebook
+google-play-scraper
