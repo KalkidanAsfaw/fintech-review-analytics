@@ -13,13 +13,19 @@ APPS = {
 }
 
 
-def scrape_app_reviews(app_id: str, app_name: str, count: int = 400) -> pd.DataFrame:
+def scrape_app_reviews(
+    app_id: str,
+    app_name: str,
+    count: int = 400,
+    lang: str = "en",
+    country: str = "us",
+) -> pd.DataFrame:
     logger.info(f"Scraping {count} reviews for {app_name} ({app_id})")
     try:
         result, _ = reviews(
             app_id,
-            lang="en",
-            country="us",
+            lang=lang,
+            country=country,
             sort=Sort.NEWEST,
             count=count,
         )
@@ -27,9 +33,19 @@ def scrape_app_reviews(app_id: str, app_name: str, count: int = 400) -> pd.DataF
         logger.error(f"Failed to scrape {app_name}: {exc}")
         return pd.DataFrame()
 
+    if not result:
+        logger.warning(
+            f"No reviews returned for {app_name}. "
+            "The app may have no reviews in the selected language/country. "
+            "Limitation: google-play-scraper only surfaces reviews indexed by Google Play "
+            "for the given lang/country combination."
+        )
+        return pd.DataFrame()
+
     df = pd.DataFrame(result)
     df["app_name"] = app_name
     df["app_id"] = app_id
+    df["source"] = "Google Play"
     logger.info(f"Collected {len(df)} reviews for {app_name}")
     return df
 

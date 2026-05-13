@@ -34,7 +34,15 @@ def test_scrape_app_reviews_returns_dataframe(mock_reviews):
     assert len(df) == 2
     assert "app_name" in df.columns
     assert "app_id" in df.columns
+    assert "source" in df.columns
     assert df["app_name"].iloc[0] == "Test App"
+    assert df["source"].iloc[0] == "Google Play"
+
+
+@patch("src.scraper.reviews", return_value=([], None))
+def test_scrape_app_reviews_returns_empty_when_no_reviews(mock_reviews):
+    df = scrape_app_reviews("com.no.reviews", "No Reviews App", count=10)
+    assert df.empty
 
 
 @patch("src.scraper.reviews", side_effect=Exception("Network error"))
