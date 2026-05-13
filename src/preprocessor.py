@@ -5,7 +5,8 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-REQUIRED_COLUMNS = ["reviewId", "content", "score", "at", "app_name", "app_id"]
+REQUIRED_COLUMNS = ["reviewId", "content", "score", "at", "app_name", "source"]
+OUTPUT_COLUMNS = ["review", "rating", "date", "bank", "source"]
 
 
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
@@ -18,8 +19,9 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
 def handle_missing(df: pd.DataFrame) -> pd.DataFrame:
     before = len(df)
     df = df.dropna(subset=["content", "score"]).copy()
-    df["content"] = df["content"].fillna("")
-    logger.info(f"Dropped {before - len(df)} rows with missing content/score")
+    df = df[df["content"].str.strip() != ""]
+    dropped = before - len(df)
+    logger.info(f"Dropped {dropped} rows with missing or empty review text / rating")
     return df
 
 
@@ -35,15 +37,12 @@ def clean_text(text: str) -> str:
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns={
         "reviewId": "review_id",
-        "content": "review_text",
+        "content": "review",
         "score": "rating",
         "at": "date",
         "app_name": "bank",
-        "app_id": "app_id",
     })
-    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
-    df["review_length"] = df["review_text"].str.len()
-    df["word_count"] = df["review_text"].str.split().str.len()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
     return df
 
 
@@ -59,6 +58,7 @@ def preprocess_reviews(df: pd.DataFrame) -> pd.DataFrame:
     df = remove_duplicates(df)
     df = handle_missing(df)
     df["content"] = df["content"].apply(clean_text)
+    df = df[df["content"] != ""]  # drop reviews that are empty after cleaning
     df = normalize_columns(df)
     df = df.reset_index(drop=True)
     logger.info(f"Preprocessing complete. {len(df)} clean reviews ready.")
@@ -66,5 +66,5 @@ def preprocess_reviews(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def save_clean_data(df: pd.DataFrame, filepath: str) -> None:
-    df.to_csv(filepath, index=False)
-    logger.info(f"Saved {len(df)} clean reviews to {filepath}")
+    df[OUTPUT_COLUMNS].to_csv(filepath, index=False)
+    logger.info(f"Saved {len(df)} clean reviews to {filepath} (columns: {OUTPUT_COLUMNS})")
