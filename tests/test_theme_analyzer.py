@@ -11,7 +11,7 @@ def test_assign_theme_account_access():
 
 
 def test_assign_theme_ui_design():
-    assert assign_theme("the interface is easy and simple to navigate") == "UI & Design"
+    assert assign_theme("the interface is easy and simple to navigate") == "UI & General Experience"
 
 
 def test_assign_theme_customer_support():
@@ -19,7 +19,7 @@ def test_assign_theme_customer_support():
 
 
 def test_assign_theme_feature_request():
-    assert assign_theme("please add fingerprint option") == "Feature Requests"
+    assert assign_theme("please add dark mode and mini statement history") == "Feature Requests"
 
 
 def test_assign_theme_other_for_unmatched():

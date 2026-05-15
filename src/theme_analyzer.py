@@ -5,33 +5,79 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 logger = logging.getLogger(__name__)
 
-# 5 business-relevant themes and their keyword seeds
+# Themes are checked in priority order — more specific themes take precedence.
+# "UI & General Experience" is intentionally last: its broad positive vocabulary
+# acts as a catch-all for short, generic quality reviews ("good", "nice", "best app")
+# that contain no signal for a more specific theme.
 THEME_KEYWORDS = {
     "Transaction Performance": [
-        "transfer", "transaction", "payment", "send", "receive",
-        "slow", "fast", "speed", "delay", "loading", "process",
+        # money operations
+        "transfer", "transaction", "payment", "send money", "receive",
+        "money", "cash", "fund", "top up", "topup", "bill", "pay",
+        "airtime", "debit", "credit", "charge", "fee", "balance",
+        "withdraw", "deposit", "pending", "process", "processing",
+        # app stability during operations
+        "crash", "crashes", "hang", "freeze", "stuck", "not working",
+        "doesn't work", "wont open", "won't open", "force close",
+        "not open", "crush", "lag", "restart", "stopped",
+        # speed/loading
+        "slow", "takes forever", "takes long", "loading", "delay",
+        "delayed", "timeout", "network error", "connection",
     ],
     "Account Access": [
-        "login", "log in", "password", "otp", "sign in", "open",
-        "access", "fingerprint", "biometric", "unlock", "verify",
-        "register", "account",
-    ],
-    "UI & Design": [
-        "interface", "design", "easy", "simple", "update", "button",
-        "screen", "user friendly", "ui", "look", "layout", "navigate",
-        "display", "theme",
+        "login", "log in", "log out", "logout", "password", "otp",
+        "one time password", "sign in", "sign up", "open account",
+        "fingerprint", "biometric", "face id", "unlock", "verify",
+        "verification", "register", "registration", "forgot password",
+        "reset", "blocked", "suspended", "pin", "authentication",
+        "token", "session", "expire", "account number", "wrong password",
+        "invalid", "cannot login", "can't login",
     ],
     "Customer Support": [
-        "support", "service", "help", "response", "staff", "call",
-        "customer care", "agent", "contact", "helpline", "complaint",
-        "resolve", "feedback",
+        "support", "customer service", "customer care", "help",
+        "response", "respond", "staff", "call center", "call",
+        "agent", "contact", "helpline", "hotline", "complaint",
+        "complain", "resolve", "poor service", "bad service",
+        "terrible service", "rude", "unhelpful", "no response",
+        "never respond", "useless", "waste of time",
     ],
     "Feature Requests": [
-        "add", "feature", "option", "wish", "need", "improve",
-        "please", "request", "would like", "suggestion", "missing",
-        "allow", "enable",
+        "please add", "add feature", "would like", "wish",
+        "suggestion", "suggest", "request", "improve", "improvement",
+        "missing feature", "allow", "enable", "option", "dark mode",
+        "statement", "mini statement", "history", "notification",
+        "virtual card", "card", "international", "dollar", "usd",
+        "forex", "schedule", "recurring", "auto pay", "widget",
+        "apple pay", "google pay", "qr", "scan",
+    ],
+    "UI & General Experience": [
+        # interface & usability
+        "interface", "design", "ui", "ux", "layout", "screen",
+        "button", "display", "navigate", "navigation", "user friendly",
+        "easy to use", "easy to navigate", "smooth", "clean", "modern",
+        "simple", "intuitive", "responsive", "fast", "quick", "speed",
+        # generic positive sentiment (catch-all for short reviews)
+        "good", "great", "nice", "best", "excellent", "amazing",
+        "awesome", "wonderful", "fantastic", "perfect", "love",
+        "like", "appreciate", "thank", "well", "superb", "brilliant",
+        "super", "convenient", "useful", "helpful", "recommend",
+        "impressive", "satisfied", "happy", "enjoy", "comfortable",
+        "good app", "great app", "nice app", "best app", "good work",
+        "keep up", "well done", "go ahead", "one step ahead",
+        # generic negative (short complaints)
+        "bad", "worst", "terrible", "awful", "horrible", "boring",
+        "disappointed", "poor", "useless app", "waste",
     ],
 }
+
+# Priority order: specific themes are evaluated before the broad catch-all.
+THEME_PRIORITY = [
+    "Transaction Performance",
+    "Account Access",
+    "Customer Support",
+    "Feature Requests",
+    "UI & General Experience",
+]
 
 
 def _stopwords() -> set:
@@ -57,16 +103,19 @@ def preprocess_text(text: str, stops: set = None) -> str:
 
 
 def assign_theme(text: str) -> str:
-    """Assign the theme whose keywords match most in the review text."""
+    """Assign theme using priority-based first-match across THEME_PRIORITY order.
+
+    More specific themes are checked first. 'UI & General Experience' is last
+    and uses broad vocabulary to catch short generic reviews that carry no
+    signal for a more specific theme.
+    """
     if not isinstance(text, str) or not text.strip():
         return "Other"
     text_lower = text.lower()
-    scores = {
-        theme: sum(1 for kw in keywords if kw in text_lower)
-        for theme, keywords in THEME_KEYWORDS.items()
-    }
-    best_theme = max(scores, key=scores.get)
-    return best_theme if scores[best_theme] > 0 else "Other"
+    for theme in THEME_PRIORITY:
+        if any(kw in text_lower for kw in THEME_KEYWORDS[theme]):
+            return theme
+    return "Other"
 
 
 def get_top_keywords(
