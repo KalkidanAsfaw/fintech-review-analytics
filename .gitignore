@@ -44,3 +44,6 @@ data/
 *.db
 *.json
 *.parquet
+
+# Backup
+backup/
