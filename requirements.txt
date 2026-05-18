@@ -12,3 +12,4 @@ notebook
 google-play-scraper
 vaderSentiment
 spacy
+psycopg2-binary

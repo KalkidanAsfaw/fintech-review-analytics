@@ -32,7 +32,7 @@ env/
 .env.local
 
 # VS Code
-.vscode/extensions.json
+.vscode/
 
 # OS
 .DS_Store
@@ -44,3 +44,6 @@ data/
 *.db
 *.json
 *.parquet
+
+# Backup
+backup/
