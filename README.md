@@ -67,6 +67,39 @@ python scripts/insert_data.py
 
 The script reads `data/processed/reviews_with_sentiment.csv`, populates the `banks` and `reviews` tables, and prints verification queries confirming row counts, average ratings, null checks, and sentiment distribution.
 
+### Verification Query Results
+
+**Reviews per bank**
+
+| bank_name | review_count |
+|---|---|
+| CBE Mobile Banking | 496 |
+| Dashen Bank | 495 |
+| Bank of Abyssinia | 489 |
+| **Total** | **1,480** |
+
+**Average rating per bank**
+
+| bank_name | avg_rating |
+|---|---|
+| CBE Mobile Banking | 4.11 |
+| Dashen Bank | 3.91 |
+| Bank of Abyssinia | 3.53 |
+
+**Null check on key columns**
+
+| null_review_text | null_rating | null_sentiment_label |
+|---|---|---|
+| 0 | 0 | 0 |
+
+**Sentiment distribution**
+
+| sentiment_label | count |
+|---|---|
+| positive | 912 |
+| negative | 523 |
+| neutral | 45 |
+
 ### Schema
 
 **banks**
